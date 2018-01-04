@@ -323,32 +323,6 @@ func RunInit() error {
 			}
 			return cfg, nil
 		}},
-		config.CfgFuncData{"cloud-init", func(cfg *config.CloudConfig) (*config.CloudConfig, error) {
-			cfg.Rancher.CloudInit.Datasources = config.LoadConfigWithPrefix(state).Rancher.CloudInit.Datasources
-			hypervisor = util.GetHypervisor()
-			if hypervisor == "" {
-				log.Infof("ros init: No Detected Hypervisor")
-			} else {
-				log.Infof("ros init: Detected Hypervisor: %s", hypervisor)
-			}
-			if hypervisor == "vmware" {
-				// add vmware to the end - we don't want to over-ride an choices the user has made
-				cfg.Rancher.CloudInit.Datasources = append(cfg.Rancher.CloudInit.Datasources, hypervisor)
-				if err := config.Set("rancher.cloud_init.datasources", cfg.Rancher.CloudInit.Datasources); err != nil {
-					log.Error(err)
-				}
-			}
-
-			log.Infof("init, runCloudInitServices(%v)", cfg.Rancher.CloudInit.Datasources)
-			if err := runCloudInitServices(cfg); err != nil {
-				log.Error(err)
-			}
-
-			// It'd be nice to push to rsyslog before this, but we don't have network
-			log.AddRSyslogHook()
-
-			return config.LoadConfig(), nil
-		}},
 		config.CfgFuncData{"read cfg and log files", func(cfg *config.CloudConfig) (*config.CloudConfig, error) {
 			filesToCopy := []string{
 				config.CloudConfigInitFile,
@@ -426,6 +400,32 @@ func RunInit() error {
 			log.Debugf("WARNING: switchroot and mount OEM2 phases not written to log file")
 
 			return cfg, nil
+		}},
+		config.CfgFuncData{"cloud-init", func(cfg *config.CloudConfig) (*config.CloudConfig, error) {
+			cfg.Rancher.CloudInit.Datasources = config.LoadConfigWithPrefix(state).Rancher.CloudInit.Datasources
+			hypervisor = util.GetHypervisor()
+			if hypervisor == "" {
+				log.Infof("ros init: No Detected Hypervisor")
+			} else {
+				log.Infof("ros init: Detected Hypervisor: %s", hypervisor)
+			}
+			if hypervisor == "vmware" {
+				// add vmware to the end - we don't want to over-ride an choices the user has made
+				cfg.Rancher.CloudInit.Datasources = append(cfg.Rancher.CloudInit.Datasources, hypervisor)
+				if err := config.Set("rancher.cloud_init.datasources", cfg.Rancher.CloudInit.Datasources); err != nil {
+					log.Error(err)
+				}
+			}
+
+			log.Infof("init, runCloudInitServices(%v)", cfg.Rancher.CloudInit.Datasources)
+			if err := runCloudInitServices(cfg); err != nil {
+				log.Error(err)
+			}
+
+			// It'd be nice to push to rsyslog before this, but we don't have network
+			log.AddRSyslogHook()
+
+			return config.LoadConfig(), nil
 		}},
 		config.CfgFuncData{"b2d Env", func(cfg *config.CloudConfig) (*config.CloudConfig, error) {
 
