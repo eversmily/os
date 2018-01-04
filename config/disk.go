@@ -43,7 +43,8 @@ func loadRawDiskConfig(dirPrefix string, full bool) map[interface{}]interface{} 
 	files := CloudConfigDirFiles(dirPrefix)
 	files = append(files, path.Join(dirPrefix, CloudConfigFile))
 	additionalCfgs, _ := readConfigs(nil, true, false, files...)
-
+	log.Info("######CloudConfig####: %v", additionalCfgs)
+	log.Info("######OSRawConfig####: %v", rawCfg)
 	return util.Merge(rawCfg, additionalCfgs)
 }
 
